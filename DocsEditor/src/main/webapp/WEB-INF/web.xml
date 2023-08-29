@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://xmlns.jcp.org/xml/ns/javaee" xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd" id="WebApp_ID" version="3.1">
+  <servlet>
+  	<servlet-name>LoginPageServlet</servlet-name>
+  	<servlet-class>common.servlet.LoginPage</servlet-class>
+  </servlet>
+  <servlet-mapping>
+  	<servlet-name>LoginPageServlet</servlet-name>
+  	<url-pattern>/login-page</url-pattern>
+  </servlet-mapping>
+  
+  <servlet>
+  	<servlet-name>LoginServlet</servlet-name>
+  	<servlet-class>common.servlet.Login</servlet-class>
+  </servlet>
+  <servlet-mapping>
+  	<servlet-name>LoginServlet</servlet-name>
+  	<url-pattern>/login</url-pattern>
+  </servlet-mapping>
+  
+  <servlet>
+  	<servlet-name>RegisterPageServlet</servlet-name>
+  	<servlet-class>common.servlet.Registerpage</servlet-class>
+  </servlet>
+  <servlet-mapping>
+  	<servlet-name>RegisterPageServlet</servlet-name>
+  	<url-pattern>/register-page</url-pattern>
+  </servlet-mapping>
+  
+  <servlet>
+  	<servlet-name>RegisterServlet</servlet-name>
+  	<servlet-class>common.servlet.Register</servlet-class>
+  </servlet>
+  <servlet-mapping>
+  	<servlet-name>RegisterServlet</servlet-name>
+  	<url-pattern>/register</url-pattern>
+  </servlet-mapping>
+  
+  <servlet>
+  	<servlet-name>HomePageServlet</servlet-name>
+  	<servlet-class>common.servlet.HomePage</servlet-class>
+  </servlet>
+  <servlet-mapping>
+  	<servlet-name>HomePageServlet</servlet-name>
+  	<url-pattern>/home</url-pattern>
+  </servlet-mapping>
+  
+  <servlet>
+  	<servlet-name>MyDocumentsServlet</servlet-name>
+  	<servlet-class>common.servlet.MyDocuments</servlet-class>
+  </servlet>
+  <servlet-mapping>
+  	<servlet-name>MyDocumentsServlet</servlet-name>
+  	<url-pattern>/documents</url-pattern>
+  </servlet-mapping>
+  
+  <servlet>
+  	<servlet-name>SharedWithMeServlet</servlet-name>
+  	<servlet-class>common.servlet.SharedWithMe</servlet-class>
+  </servlet>
+  <servlet-mapping>
+  	<servlet-name>SharedWithMeServlet</servlet-name>
+  	<url-pattern>/sharedwithme</url-pattern>
+  </servlet-mapping>
+  
+  <servlet>
+  	<servlet-name>UploadDocsServlet</servlet-name>
+  	<servlet-class>common.servlet.UploadDocs</servlet-class>
+  </servlet>
+  <servlet-mapping>
+  	<servlet-name>UploadDocsServlet</servlet-name>
+  	<url-pattern>/uploadDocs</url-pattern>
+  </servlet-mapping>
+  
+  <filter>
+  	<filter-name>DocUploadFilter</filter-name>
+  	<filter-class>common.filter.DocUpload</filter-class>
+  </filter>
+  <filter-mapping>
+  	<filter-name>DocUploadFilter</filter-name>
+  	<url-pattern>/upload</url-pattern>
+  </filter-mapping>
+  
+  <servlet>
+  	<servlet-name>UploadServlet</servlet-name>
+  	<servlet-class>common.servlet.Upload</servlet-class>
+  	<multipart-config>
+    	<max-file-size>10485760</max-file-size>
+        <max-request-size>104857600</max-request-size>
+        <file-size-threshold>1048576</file-size-threshold>
+    </multipart-config>
+  </servlet>
+  <servlet-mapping>
+  	<servlet-name>UploadServlet</servlet-name>
+  	<url-pattern>/upload</url-pattern>
+  </servlet-mapping>
+   
+  <servlet>
+  	<servlet-name>OpenDocServlet</servlet-name>
+  	<servlet-class>common.servlet.OpenDoc</servlet-class>
+  </servlet>
+  <servlet-mapping>
+  	<servlet-name>OpenDocServlet</servlet-name>
+  	<url-pattern>/open</url-pattern>
+  </servlet-mapping>
+  
+  <servlet>
+  	<servlet-name>SaveDocServlet</servlet-name>
+  	<servlet-class>common.servlet.Save</servlet-class>
+  </servlet>
+  <servlet-mapping>
+  	<servlet-name>SaveDocServlet</servlet-name>
+  	<url-pattern>/save</url-pattern>
+  </servlet-mapping>
+  
+  <servlet>
+  	<servlet-name>UndoServlet</servlet-name>
+  	<servlet-class>common.servlet.Undo</servlet-class>
+  </servlet>
+  <servlet-mapping>
+  	<servlet-name>UndoServlet</servlet-name>
+  	<url-pattern>/undo</url-pattern>
+  </servlet-mapping>
+  
+  <servlet>
+  	<servlet-name>RedoServlet</servlet-name>
+  	<servlet-class>common.servlet.Redo</servlet-class>
+  </servlet>
+  <servlet-mapping>
+  	<servlet-name>RedoServlet</servlet-name>
+  	<url-pattern>/redo</url-pattern>
+  </servlet-mapping>
+  
+  <servlet>
+  	<servlet-name>DownloadDocServlet</servlet-name>
+  	<servlet-class>common.servlet.DownloadDoc</servlet-class>
+  </servlet>
+  <servlet-mapping>
+  	<servlet-name>DownloadDocServlet</servlet-name>
+  	<url-pattern>/download</url-pattern>
+  </servlet-mapping>
+  
+  <servlet>
+  	<servlet-name>ShareServlet</servlet-name>
+  	<servlet-class>common.servlet.Share</servlet-class>
+  </servlet>
+  <servlet-mapping>
+  	<servlet-name>ShareServlet</servlet-name>
+  	<url-pattern>/share</url-pattern>
+  </servlet-mapping>
+  
+  <servlet>
+  	<servlet-name>DeleteDocServlet</servlet-name>
+  	<servlet-class>common.servlet.DeleteDoc</servlet-class>
+  </servlet>
+  <servlet-mapping>
+  	<servlet-name>DeleteDocServlet</servlet-name>
+  	<url-pattern>/delete</url-pattern>
+  </servlet-mapping>
+  
+  <servlet>
+  	<servlet-name>LogOutServlet</servlet-name>
+  	<servlet-class>common.servlet.LogOut</servlet-class>
+  </servlet>
+  <servlet-mapping>
+  	<servlet-name>LogOutServlet</servlet-name>
+  	<url-pattern>/logout</url-pattern>
+  </servlet-mapping>
+</web-app>
