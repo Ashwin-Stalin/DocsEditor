@@ -38,70 +38,53 @@ public class Save extends HttpServlet {
 		    int docid = Integer.parseInt(req.getParameter("doc_id"));
 		    String newContent = req.getParameter("textToSave");
 		    InputStream newfileContent = new ByteArrayInputStream(newContent.getBytes());
-		    PreparedStatement ps = connection.prepareStatement("select versionid,content from versions where docid=? order by versionid desc limit 1");
-		    ps.setInt(1, docid);
+		    PreparedStatement ps = connection.prepareStatement("select versionid, content from document join versions on document.currentversion=versions.versionid");
 		    ResultSet res = ps.executeQuery();
 		    out.println("<html>");
 		    out.println("<body>");
 		    if(res.next()) {
-		    	int oldversionid = res.getInt("versionid");
+		    	int versionid = res.getInt("versionid");
 		    	InputStream content = res.getBinaryStream("content");
 		    	String previousContent = readInputStreamToString(content);
-		    	System.out.println(previousContent);
-		    	System.out.println(newContent);
 		    	if(newContent.contentEquals(previousContent)) {
 		    		out.println("Nothing to Save");
 		    	}else {
+		    		PreparedStatement pS = connection.prepareStatement("delete from versions where versionid>? and docid=?;");
+		    		pS.setInt(1, versionid);
+		    		pS.setInt(2, docid);
+		    		pS.executeUpdate();
 		    		PreparedStatement preparedStatement = connection.prepareStatement("insert into versions(docid, content, editeduserid) values(?,?,?) returning versionid");
 		    		preparedStatement.setInt(1, docid);
 				    preparedStatement.setBinaryStream(2, newfileContent, newfileContent.available());
 				    preparedStatement.setInt(3, userid);
 				    ResultSet rs = preparedStatement.executeQuery();
-				    
 				    if(rs.next()) {
 				    	int newversionid = rs.getInt("versionid");
 				    	preparedStatement = connection.prepareStatement("update document set currentversion=? where docid=?");
 				    	preparedStatement.setInt(1, newversionid);
 					    preparedStatement.setInt(2, docid);
 					    preparedStatement.executeUpdate();
-					    System.out.println(newversionid);
 				    }
+				    
 				    diff_match_patch dmp = new diff_match_patch();
 				    LinkedList<diff_match_patch.Diff> diffs = dmp.diff_main(newContent, previousContent);
 	                dmp.diff_cleanupSemantic(diffs);
 	                String patch = dmp.patch_toText(dmp.patch_make(diffs));
 	                InputStream patchContent = new ByteArrayInputStream(patch.getBytes());
-	                System.out.println(oldversionid);
-	                System.out.println(patch);
+	                
 				    preparedStatement = connection.prepareStatement("update versions set content=? where versionid=?");
 				    preparedStatement.setBinaryStream(1, patchContent);
-				    preparedStatement.setInt(2, oldversionid);
+				    preparedStatement.setInt(2, versionid);
 				    preparedStatement.executeUpdate();
 				    out.println("Saved Successfully");
 		    	}
-		    }else {
-		    	PreparedStatement preparedStatement = connection.prepareStatement("insert into versions(docid, content, editeduserid) values(?,?,?) returning versionid");
-			    preparedStatement.setInt(1, docid);
-			    preparedStatement.setBinaryStream(2, newfileContent, newfileContent.available());
-			    preparedStatement.setInt(3, userid);
-			    ResultSet rs = preparedStatement.executeQuery();
-			    if(rs.next()) {
-			    	int versionid = rs.getInt("versionid");
-			    	preparedStatement = connection.prepareStatement("update document set currentversion=? where docid=?");
-			    	preparedStatement.setInt(1, versionid);
-				    preparedStatement.setInt(2, docid);
-				    preparedStatement.executeUpdate();
-				    out.println("Saved Successfully");
-			    }else 
-			    	out.println("Error");
 		    }
-		    
 		    out.println("</body>");
 		    out.println("</html");
 		} catch (IOException e) {
 			System.out.println("Catched IO Exception " + e.getMessage());
 		} catch (SQLException e) {
-			System.out.println("Catched IO Exception " + e.getMessage());
+			System.out.println("Catched SQL Exception " + e.getMessage());
 		}
 	}
 	

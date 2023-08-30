@@ -1,15 +1,14 @@
 package common.servlet;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -41,6 +40,8 @@ public class OpenDoc extends HttpServlet {
 		    ResultSet rs = ps.executeQuery();
 		    out.println("<html>");
 		    out.println("<body>");
+		    req.getRequestDispatcher("links.html").include(req, resp);
+		    out.println("<br><br>");
 		    if(rs.next()) {
 		    	int currentVersion = rs.getInt("currentversion");
 		    	ps = connection.prepareStatement("select content from versions where versionid=?");
@@ -57,6 +58,7 @@ public class OpenDoc extends HttpServlet {
 				    out.println("</textarea>");
 				    out.println("</form>");
 			    }
+			    return;
 		    }else {
 		    	PreparedStatement preparedStatement = connection.prepareStatement("select permission, currentversion from docshared join document on docshared.docid=? and docshared.receiverid=?");
 			    preparedStatement.setInt(1, docid);
@@ -73,6 +75,7 @@ public class OpenDoc extends HttpServlet {
 				    	String fileContent = readInputStreamToString(content);
 				    	if(permission.contentEquals("All")) {
 				    		out.println("<form action=\"save?doc_id="+ docid + "\" method=\"POST\">");
+				    		out.println("<input type=\"submit\" value=\"Save\">");
 				    		out.println("<button type=\"button\"><a href=\"undo?doc_id="+ docid+"\">Undo</a></button>");
 				    		out.println("<button type=\"button\"><a href=\"redo?doc_id="+docid+"\">Redo</a></button><br><br>");
 				    		out.println("<textarea name=\"textToSave\" rows=\"40\" cols=\"80\">");
@@ -94,7 +97,8 @@ public class OpenDoc extends HttpServlet {
 			System.out.println("Catched IO Exception " + e.getMessage());
 		} catch (SQLException e) {
 			System.out.println("Catched SQL Exception " + e.getMessage());
-			e.printStackTrace();
+		} catch (ServletException e) {
+			System.out.println("Catched Servlet Exception " + e.getMessage());
 		}
 	}
 	

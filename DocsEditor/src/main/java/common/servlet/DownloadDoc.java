@@ -1,6 +1,7 @@
 package common.servlet;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -32,16 +33,17 @@ public class DownloadDoc extends HttpServlet {
 		    }else {
 			    int userid = (int) session.getAttribute("userid");
 			    int docid = Integer.parseInt(req.getParameter("doc_id"));
-			    PreparedStatement preparedStatement = connection.prepareStatement("select ownerid,name, content from document where docid=? AND ownerid=?");
+			    PreparedStatement preparedStatement = connection.prepareStatement("select name, content from document join versions on document.currentversion=versions.versionid where document.docid=? and document.ownerid=?");
 			    preparedStatement.setObject(1, docid);
 			    preparedStatement.setObject(2, userid);
 			    ResultSet rs = preparedStatement.executeQuery();
 			    if(rs.next()) {
-		    		String content = rs.getString("content");
+			    	InputStream content = rs.getBinaryStream("content");
+			    	String fileContent = readInputStreamToString(content);
 	    			String docName = rs.getString("name");
 	    			resp.setContentType("text/plain");
 	    			resp.setHeader("Content-Disposition", "attachment; filename="+ docName);
-	    			out.write(content);
+	    			out.write(fileContent);
 			    } else {
 			    	out.print("UnAuthorized !");
 			    }
@@ -53,5 +55,13 @@ public class DownloadDoc extends HttpServlet {
         }
         
 	}
+	
+	private String readInputStreamToString(InputStream inputStream) throws IOException {
+		StringBuilder sb = new StringBuilder();
+		for (int ch; (ch = inputStream.read()) != -1; ) {
+		    sb.append((char) ch);
+		}
+		return sb.toString();
+    }
 	
 }

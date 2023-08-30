@@ -36,10 +36,10 @@ public class Undo extends HttpServlet {
 		    }
 		    int userid = (int) session.getAttribute("userid");
 		    int docid = Integer.parseInt(req.getParameter("doc_id"));
-		    PreparedStatement ps = connection.prepareStatement("select currentversion, content from document join versions on document.docid=versions.docid limit 1");
+		    PreparedStatement ps = connection.prepareStatement("select versionid, content from document join versions on document.currentversion=versions.versionid limit 1");
 		    ResultSet res = ps.executeQuery();
 		    if(res.next()) {
-		    	int currentVersionid = res.getInt("currentversion");
+		    	int currentVersionid = res.getInt("versionid");
 		    	InputStream content = res.getBinaryStream("content");
 		    	String currentContent = readInputStreamToString(content);
 		    	PreparedStatement preparedStatement = connection.prepareStatement("select versionid,content from versions where docid=? and versionid<? order by versionid desc limit 1");
@@ -52,15 +52,9 @@ public class Undo extends HttpServlet {
 			    	InputStream c = rs.getBinaryStream("content");
 			    	String previousContent = readInputStreamToString(c);
 			    	
-			    	System.out.println("Current id " + currentVersionid);
-			    	System.out.println("Previous id " + previousVersionid);
-			    	System.out.println("Current file " + currentContent);
-			    	System.out.println("Previous file " + previousContent);
-			    	
 			    	LinkedList<diff_match_patch.Patch> patches = (LinkedList<diff_match_patch.Patch>) dmp.patch_fromText(previousContent);
 	                Object[] results = dmp.patch_apply(patches, currentContent);
 	                String patchedText = (String) results[0];
-	                System.out.println(patchedText);
 	                InputStream retrievedText = new ByteArrayInputStream(patchedText.getBytes());
 	                
 	                LinkedList<diff_match_patch.Diff> diffs = dmp.diff_main(patchedText, currentContent);
@@ -77,7 +71,6 @@ public class Undo extends HttpServlet {
 	                pS.setInt(6, docid);
 	                pS.executeUpdate();
 		    	}
-		    	System.out.println("Here");
 		    	resp.sendRedirect("open?doc_id=" + docid);
 		    }
 		} catch (IOException e) {

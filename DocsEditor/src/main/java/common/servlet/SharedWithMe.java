@@ -37,6 +37,7 @@ public class SharedWithMe extends HttpServlet {
 			ResultSet rs = preparedStatement.executeQuery();
 			out.println("<html>");
 			out.println("<body>");
+			out.println("<h3><i id=\"deleteSuccess\" style=\"color: blue; display: none;\">Document deleted Successfully</i></h3>");
 			out.println("<h2>Shared With Me</h2>");
 			req.getRequestDispatcher("links.html").include(req, resp);
 			out.println("<br><br>");

@@ -44,6 +44,10 @@ public class MyDocuments extends HttpServlet {
 		    out.println("<h2>My Documents</h2>");
 		    req.getRequestDispatcher("links.html").include(req, resp); 
 		    out.println("<br><br>");
+		    out.println("<form action=\"create\" method=\"post\">");
+		    out.println("<input type=\"text\" name=\"docname\" placeholder=\"name.txt\" required>");
+		    out.println("<input type=\"submit\" value=\"Create New Document\">");
+		    out.println("</form><br>");
 		    out.println("<div id=\"container\">");
 		    while(rs.next()) {
 		    	int docid = rs.getInt("docid");

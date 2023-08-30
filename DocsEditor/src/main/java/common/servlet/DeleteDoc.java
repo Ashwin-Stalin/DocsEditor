@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import javax.servlet.ServletException;
@@ -32,15 +33,30 @@ public class DeleteDoc extends HttpServlet {
 		    }
 		    int userid = (int) session.getAttribute("userid");
 		    int docid = Integer.parseInt(req.getParameter("doc_id"));
-		    PreparedStatement preparedStatement = null;
-		    preparedStatement = connection.prepareStatement("delete from docshared where docid=? ; delete from document where docid=? and ownerid=?;");
-		    preparedStatement.setInt(1, docid);
-		    preparedStatement.setInt(2, docid);
-		    preparedStatement.setInt(3, userid);
-		    preparedStatement.executeUpdate();
-		    String scriptTag = "<script>document.querySelector('#deleteSuccess').style=\"color: blue;\";</script> ";
-			req.setAttribute("deleteSuccess", scriptTag);
-			req.getRequestDispatcher("documents").include(req, resp);
+		    
+		    PreparedStatement ps = connection.prepareStatement("select * from document where docid=? and ownerid=?");
+		    ps.setInt(1, docid);
+		    ps.setInt(2, userid);
+		    ResultSet rs = ps.executeQuery();
+		    if(rs.next()) {
+		    	PreparedStatement preparedStatement = connection.prepareStatement("delete from docshared where docid=? ; delete from document where docid=?;");
+			    preparedStatement.setInt(1, docid);
+			    preparedStatement.setInt(2, docid);
+			    preparedStatement.executeUpdate();
+			    String scriptTag = "<script>document.querySelector('#deleteSuccess').style=\"color: blue;\";</script> ";
+				req.setAttribute("deleteSuccess", scriptTag);
+				req.getRequestDispatcher("documents").include(req, resp);
+		    }else {
+		    	PreparedStatement preparedStatement = connection.prepareStatement("delete from docshared where docid=? and receiverid=?");
+		    	preparedStatement.setInt(1, docid);
+			    preparedStatement.setInt(2, userid);
+			    preparedStatement.executeUpdate();
+			    String scriptTag = "<script>document.querySelector('#deleteSuccess').style=\"color: blue;\";</script> ";
+				req.setAttribute("deleteSuccess", scriptTag);
+				req.getRequestDispatcher("sharedwithme").include(req, resp);
+		    }
+		    
+		    
 		} catch (IOException e) {
             System.out.println("Catched IO Exception : " + e.getMessage());
         } catch (ServletException e) {
