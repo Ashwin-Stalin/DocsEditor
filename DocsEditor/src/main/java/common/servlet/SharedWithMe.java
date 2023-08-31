@@ -18,7 +18,7 @@ import common.db.Database;
 public class SharedWithMe extends HttpServlet {
 	private static Connection connection = null;
 	private final static Database db = Database.getInstance();
-	
+
 	@Override
 	public void init() {
 		connection = db.getConnection();
@@ -26,9 +26,9 @@ public class SharedWithMe extends HttpServlet {
 
 	@Override
 	protected void service(HttpServletRequest req, HttpServletResponse resp) {
-		try(PrintWriter out = resp.getWriter()){
+		try (PrintWriter out = resp.getWriter()) {
 			HttpSession session = req.getSession(false);
-			if(session == null)
+			if (session == null)
 				resp.sendRedirect("login-page");
 			int userid = (int) session.getAttribute("userid");
 			String scriptdeleteTag = (String) req.getAttribute("deleteSuccess");
@@ -41,27 +41,27 @@ public class SharedWithMe extends HttpServlet {
 			out.println("<h2>Shared With Me</h2>");
 			req.getRequestDispatcher("links.html").include(req, resp);
 			out.println("<br><br>");
-		    out.println("<div id=\"container\">");
-		    while(rs.next()) {
-		    	int docid = rs.getInt("docid");
-		    	out.println("<div> ");
-		    	out.println(rs.getString("name"));
-		    	out.println("<a href=\"open?doc_id="+ docid +"\"><input type=\"button\" value=\"Open\" /></a>");
-		    	out.println("<a href=\"delete?doc_id="+ docid +"\"><input type=\"button\" value=\"Delete\" /></a>");
-		    	out.println("</div>");
-		    }
-		    out.println("</div>");
-            if(scriptdeleteTag != null)
-		    	out.println(scriptdeleteTag);
+			out.println("<div id=\"container\">");
+			while (rs.next()) {
+				int docid = rs.getInt("docid");
+				out.println("<div> ");
+				out.println(rs.getString("name"));
+				out.println("<a href=\"open?doc_id=" + docid + "\"><input type=\"button\" value=\"Open\" /></a>");
+				out.println("<a href=\"delete?doc_id=" + docid + "\"><input type=\"button\" value=\"Delete\" /></a>");
+				out.println("</div>");
+			}
+			out.println("</div>");
+			if (scriptdeleteTag != null)
+				out.println(scriptdeleteTag);
 			out.println("</body>");
 			out.println("</html>");
-		} catch(IOException e) {
+		} catch (IOException e) {
 			System.out.println("Catched IO Exception " + e.getMessage());
 		} catch (ServletException e) {
-        	System.out.println("Catched Servlet Exception : " + e.getMessage());
-        } catch (SQLException e) {
-        	System.out.println("Catched SQL Exception : " + e.getMessage());
-        }
+			System.out.println("Catched Servlet Exception : " + e.getMessage());
+		} catch (SQLException e) {
+			System.out.println("Catched SQL Exception : " + e.getMessage());
+		}
 	}
 
 }

@@ -11,12 +11,12 @@ public class LogOut extends HttpServlet {
 	@Override
 	protected void service(HttpServletRequest req, HttpServletResponse resp) {
 		try {
-			HttpSession session = req.getSession();  
+			HttpSession session = req.getSession();
 			session.invalidate();
 			resp.sendRedirect("login-page");
 		} catch (IOException e) {
-            System.out.println("Catch IO Exception : " + e.getMessage());
-        } 
+			System.out.println("Catch IO Exception : " + e.getMessage());
+		}
 	}
 
 }
