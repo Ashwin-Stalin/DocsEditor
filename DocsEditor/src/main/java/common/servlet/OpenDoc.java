@@ -29,9 +29,9 @@ public class OpenDoc extends HttpServlet {
 	protected void service(HttpServletRequest req, HttpServletResponse resp) {
 		try (PrintWriter out = resp.getWriter()) {
 			HttpSession session = req.getSession(false);
-			if (session == null) {
+			if (session == null) 
 				resp.sendRedirect("login-page");
-			}
+
 			int userid = (int) session.getAttribute("userid");
 			int docid = Integer.parseInt(req.getParameter("doc_id"));
 			PreparedStatement ps = connection.prepareStatement("select currentversion from document where docid=? and ownerid=?");
@@ -57,11 +57,23 @@ public class OpenDoc extends HttpServlet {
 					out.println("<textarea name=\"textToSave\" rows=\"40\" cols=\"80\">" + fileContent);
 					out.println("</textarea>");
 					out.println("</form>");
+					PreparedStatement preparedStatement = connection.prepareStatement("select * from versions where docid=? order by versionid asc");
+					preparedStatement.setInt(1, docid);
+					ResultSet rsss = preparedStatement.executeQuery();
+					while (rsss.next()) {
+						int versionid = rsss.getInt("versionid");
+						InputStream ct = rsss.getBinaryStream("content");
+						String contents = readInputStreamToString(ct);
+						int editeduserid = rsss.getInt("editeduserid");
+						out.println("Version ID : " + versionid);
+						out.println("<br>Content : " + contents);
+						out.println("<br>Edited User ID : " + editeduserid);
+						out.println("<br><br>");
+					}
 				}
 				return;
 			} else {
-				PreparedStatement preparedStatement = connection.prepareStatement(
-						"select permission, currentversion from docshared join document on docshared.docid=? and docshared.receiverid=?");
+				PreparedStatement preparedStatement = connection.prepareStatement("select permission, currentversion from docshared join document on docshared.docid=? and docshared.receiverid=?");
 				preparedStatement.setInt(1, docid);
 				preparedStatement.setInt(2, userid);
 				ResultSet rsss = preparedStatement.executeQuery();
@@ -103,10 +115,13 @@ public class OpenDoc extends HttpServlet {
 		}
 	}
 
-	private String readInputStreamToString(InputStream inputStream) throws IOException {
+	private String readInputStreamToString(InputStream inputStream) {
 		StringBuilder sb = new StringBuilder();
-		for (int ch; (ch = inputStream.read()) != -1;) {
-			sb.append((char) ch);
+		try {
+			for (int ch; (ch = inputStream.read()) != -1;)
+				sb.append((char) ch);
+		} catch(IOException e) {
+			System.out.println("Catched IO Exception " + e.getMessage() );
 		}
 		return sb.toString();
 	}

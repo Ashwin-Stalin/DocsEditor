@@ -25,10 +25,11 @@ public class Login extends HttpServlet {
 	}
 
 	@Override
-	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+	protected void doPost(HttpServletRequest req, HttpServletResponse resp) {
 		try (PrintWriter out = resp.getWriter()) {
 			String uname = req.getParameter("uname");
 			String pass = req.getParameter("pass");
+			// Checking username and password are in users table
 			PreparedStatement preparedStatement = connection.prepareStatement("select * from users where username=? and password=?");
 			preparedStatement.setString(1, uname);
 			preparedStatement.setString(2, pass);
@@ -45,6 +46,10 @@ public class Login extends HttpServlet {
 			}
 		} catch (SQLException e) {
 			System.out.println("Catched SQL Exception " + e.getMessage());
+		} catch (IOException e) {
+			System.out.println("Catched IO Exception " + e.getMessage());
+		} catch (ServletException e) {
+			System.out.println("Catched Servlet Exception " + e.getMessage());
 		}
 	}
 

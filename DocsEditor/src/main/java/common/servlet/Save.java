@@ -31,14 +31,16 @@ public class Save extends HttpServlet {
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) {
 		try (PrintWriter out = resp.getWriter()) {
 			HttpSession session = req.getSession(false);
-			if (session == null) {
+			if (session == null)
 				resp.sendRedirect("login-page");
-			}
+
 			int userid = (int) session.getAttribute("userid");
 			int docid = Integer.parseInt(req.getParameter("doc_id"));
 			String newContent = req.getParameter("textToSave");
 			InputStream newfileContent = new ByteArrayInputStream(newContent.getBytes());
-			PreparedStatement ps = connection.prepareStatement("select versionid, content from document join versions on document.currentversion=versions.versionid");
+			// Retrieving content of current version by joining document and versions table
+			PreparedStatement ps = connection.prepareStatement("select versionid, content from document join versions on document.currentversion=versions.versionid where document.docid=?");
+			ps.setInt(1, docid);
 			ResultSet res = ps.executeQuery();
 			out.println("<html>");
 			out.println("<body>");
@@ -46,13 +48,16 @@ public class Save extends HttpServlet {
 				int versionid = res.getInt("versionid");
 				InputStream content = res.getBinaryStream("content");
 				String previousContent = readInputStreamToString(content);
-				if (newContent.contentEquals(previousContent)) {
+				// Checking both the current version content and new content to save are same
+				if (newContent.contentEquals(previousContent))
 					out.println("Nothing to Save");
-				} else {
+				else {
+					// If not same, deleting all the other versions after the current version int versions table (for redo functionality)
 					PreparedStatement pS = connection.prepareStatement("delete from versions where versionid>? and docid=?;");
 					pS.setInt(1, versionid);
 					pS.setInt(2, docid);
 					pS.executeUpdate();
+					// Inserting new content into version table and returning versionid
 					PreparedStatement preparedStatement = connection.prepareStatement("insert into versions(docid, content, editeduserid) values(?,?,?) returning versionid");
 					preparedStatement.setInt(1, docid);
 					preparedStatement.setBinaryStream(2, newfileContent, newfileContent.available());
@@ -60,6 +65,7 @@ public class Save extends HttpServlet {
 					ResultSet rs = preparedStatement.executeQuery();
 					if (rs.next()) {
 						int newversionid = rs.getInt("versionid");
+						// Updating the version id to document table
 						preparedStatement = connection.prepareStatement("update document set currentversion=? where docid=?");
 						preparedStatement.setInt(1, newversionid);
 						preparedStatement.setInt(2, docid);
@@ -71,7 +77,7 @@ public class Save extends HttpServlet {
 					dmp.diff_cleanupSemantic(diffs);
 					String patch = dmp.patch_toText(dmp.patch_make(diffs));
 					InputStream patchContent = new ByteArrayInputStream(patch.getBytes());
-
+					// Now that current version is updated ,here updating the versions table's previous version's content for diff
 					preparedStatement = connection.prepareStatement("update versions set content=? where versionid=?");
 					preparedStatement.setBinaryStream(1, patchContent);
 					preparedStatement.setInt(2, versionid);
@@ -97,10 +103,13 @@ public class Save extends HttpServlet {
 		}
 	}
 
-	private String readInputStreamToString(InputStream inputStream) throws IOException {
+	private String readInputStreamToString(InputStream inputStream) {
 		StringBuilder sb = new StringBuilder();
-		for (int ch; (ch = inputStream.read()) != -1;) {
-			sb.append((char) ch);
+		try {
+			for (int ch; (ch = inputStream.read()) != -1;)
+				sb.append((char) ch);
+		} catch(IOException e) {
+			System.out.println("Catched IO Exception " + e.getMessage() );
 		}
 		return sb.toString();
 	}

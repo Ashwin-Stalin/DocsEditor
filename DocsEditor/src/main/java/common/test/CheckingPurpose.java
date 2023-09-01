@@ -34,7 +34,7 @@ public class CheckingPurpose extends HttpServlet {
 			}
 			int userid = (int) session.getAttribute("userid");
 			int docid = Integer.parseInt(req.getParameter("doc_id"));
-			PreparedStatement preparedStatement = connection.prepareStatement("select * from versions where docid=?");
+			PreparedStatement preparedStatement = connection.prepareStatement("select * from versions where docid=? order by versionid asc");
 			preparedStatement.setInt(1, docid);
 			ResultSet rs = preparedStatement.executeQuery();
 			while (rs.next()) {

@@ -30,8 +30,10 @@ public class SharedWithMe extends HttpServlet {
 			HttpSession session = req.getSession(false);
 			if (session == null)
 				resp.sendRedirect("login-page");
+			
 			int userid = (int) session.getAttribute("userid");
 			String scriptdeleteTag = (String) req.getAttribute("deleteSuccess");
+			// Retrieving all the record which is shared to the user by joining docshared and document table
 			PreparedStatement preparedStatement = connection.prepareStatement(" select ds.shareid ,ds.docid, ds.receiverid, ds.permission, d.ownerid, d.name  from docshared as ds join document as d on ds.docid=d.docid  where receiverid=?");
 			preparedStatement.setInt(1, userid);
 			ResultSet rs = preparedStatement.executeQuery();

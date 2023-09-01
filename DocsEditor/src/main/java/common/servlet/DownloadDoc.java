@@ -28,26 +28,25 @@ public class DownloadDoc extends HttpServlet {
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) {
 		try (PrintWriter out = resp.getWriter()) {
 			HttpSession session = req.getSession(false);
-			if (session == null) {
+			if (session == null)
 				resp.sendRedirect("login-page");
-			} else {
-				int userid = (int) session.getAttribute("userid");
-				int docid = Integer.parseInt(req.getParameter("doc_id"));
-				PreparedStatement preparedStatement = connection.prepareStatement("select name, content from document join versions on document.currentversion=versions.versionid where document.docid=? and document.ownerid=?");
-				preparedStatement.setObject(1, docid);
-				preparedStatement.setObject(2, userid);
-				ResultSet rs = preparedStatement.executeQuery();
-				if (rs.next()) {
-					InputStream content = rs.getBinaryStream("content");
-					String fileContent = readInputStreamToString(content);
-					String docName = rs.getString("name");
-					resp.setContentType("text/plain");
-					resp.setHeader("Content-Disposition", "attachment; filename=" + docName);
-					out.write(fileContent);
-				} else {
-					out.print("UnAuthorized !");
-				}
-			}
+
+			int userid = (int) session.getAttribute("userid");
+			int docid = Integer.parseInt(req.getParameter("doc_id"));
+			// Retrieving content and filename by joining document and versions table 
+			PreparedStatement preparedStatement = connection.prepareStatement("select name, content from document join versions on document.currentversion=versions.versionid where document.docid=? and document.ownerid=?");
+			preparedStatement.setObject(1, docid);
+			preparedStatement.setObject(2, userid);
+			ResultSet rs = preparedStatement.executeQuery();
+			if (rs.next()) {
+				InputStream content = rs.getBinaryStream("content");
+				String fileContent = readInputStreamToString(content);
+				String docName = rs.getString("name");
+				resp.setContentType("text/plain");
+				resp.setHeader("Content-Disposition", "attachment; filename=" + docName);
+				out.write(fileContent);
+			} else
+				out.print("UnAuthorized !");			
 		} catch (IOException e) {
 			System.out.println("Catch IO Exception : " + e.getMessage());
 		} catch (SQLException e) {
@@ -56,10 +55,13 @@ public class DownloadDoc extends HttpServlet {
 
 	}
 
-	private String readInputStreamToString(InputStream inputStream) throws IOException {
+	private String readInputStreamToString(InputStream inputStream) {
 		StringBuilder sb = new StringBuilder();
-		for (int ch; (ch = inputStream.read()) != -1;) {
-			sb.append((char) ch);
+		try {
+			for (int ch; (ch = inputStream.read()) != -1;)
+				sb.append((char) ch);
+		} catch(IOException e) {
+			System.out.println("Catched IO Exception " + e.getMessage() );
 		}
 		return sb.toString();
 	}

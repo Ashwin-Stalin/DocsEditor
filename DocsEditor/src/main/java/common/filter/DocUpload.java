@@ -20,15 +20,14 @@ public class DocUpload implements Filter {
 			HttpServletRequest req = (HttpServletRequest) request;
 			Boolean valid = true;
 			for (Part part : req.getParts()) {
-				if (part.getName().equals("docs") && (part.getSubmittedFileName().endsWith(".txt"))) {
+				if (part.getName().equals("docs") && (part.getSubmittedFileName().endsWith(".txt")))
 					continue;
-				} else {
+				else
 					valid = false;
-				}
 			}
-			if (valid) {
+			if (valid) 
 				chain.doFilter(request, response);
-			} else {
+			else {
 				String scriptErrorTag = "<script>document.querySelector('#error-file').style=\"color: red;\";</script> ";
 				request.setAttribute("error", scriptErrorTag);
 				request.getRequestDispatcher("uploadDocs").include(request, response);

@@ -30,11 +30,12 @@ public class MyDocuments extends HttpServlet {
 			HttpSession session = req.getSession(false);
 			if (session == null)
 				resp.sendRedirect("login-page");
+			
 			int userid = (int) session.getAttribute("userid");
 			String scriptShareTag = (String) req.getAttribute("sharedSuccess");
 			String scriptdeleteTag = (String) req.getAttribute("deleteSuccess");
-			PreparedStatement preparedStatement = null;
-			preparedStatement = connection.prepareStatement("select name,docid from document where ownerid=?");
+			// Retrieving name and docid from document table
+			PreparedStatement preparedStatement = connection.prepareStatement("select name,docid from document where ownerid=?");
 			preparedStatement.setInt(1, userid);
 			ResultSet rs = preparedStatement.executeQuery();
 			out.println("<html>");
@@ -71,6 +72,7 @@ public class MyDocuments extends HttpServlet {
 				out.println("</div>");
 			}
 			out.println("</div>");
+			// script tags for share button
 			out.println("<script>");
 			out.println("document.addEventListener('DOMContentLoaded', function() {");
 			out.println("const container = document.getElementById('container');");

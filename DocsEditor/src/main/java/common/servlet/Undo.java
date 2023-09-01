@@ -9,7 +9,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.LinkedList;
-import javax.servlet.ServletException;
+
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -31,17 +31,19 @@ public class Undo extends HttpServlet {
 	protected void service(HttpServletRequest req, HttpServletResponse resp) {
 		try (PrintWriter out = resp.getWriter()) {
 			HttpSession session = req.getSession(false);
-			if (session == null) {
+			if (session == null) 
 				resp.sendRedirect("login-page");
-			}
-			int userid = (int) session.getAttribute("userid");
+
 			int docid = Integer.parseInt(req.getParameter("doc_id"));
-			PreparedStatement ps = connection.prepareStatement("select versionid, content from document join versions on document.currentversion=versions.versionid limit 1");
+			// Retrieving current version content by joining document and versions table
+			PreparedStatement ps = connection.prepareStatement("select versionid, content from document join versions on document.currentversion=versions.versionid where document.docid=? limit 1");
+			ps.setInt(1, docid);
 			ResultSet res = ps.executeQuery();
 			if (res.next()) {
 				int currentVersionid = res.getInt("versionid");
 				InputStream content = res.getBinaryStream("content");
 				String currentContent = readInputStreamToString(content);
+				// Retrieving previous version content form versions table
 				PreparedStatement preparedStatement = connection.prepareStatement("select versionid,content from versions where docid=? and versionid<? order by versionid desc limit 1");
 				preparedStatement.setInt(1, docid);
 				preparedStatement.setInt(2, currentVersionid);
@@ -61,7 +63,7 @@ public class Undo extends HttpServlet {
 					dmp.diff_cleanupSemantic(diffs);
 					String patch = dmp.patch_toText(dmp.patch_make(diffs));
 					InputStream patchContent = new ByteArrayInputStream(patch.getBytes());
-
+					// Updating versions and document table (for undo functionality)
 					PreparedStatement pS = connection.prepareStatement("update versions set content=? where versionid=?;update versions set content=? where versionid=?;update document set currentversion=? where docid=?");
 					pS.setBinaryStream(1, retrievedText);
 					pS.setInt(2, previousVersionid);
@@ -77,14 +79,16 @@ public class Undo extends HttpServlet {
 			System.out.println("Catched IO Exception " + e.getMessage());
 		} catch (SQLException e) {
 			System.out.println("Catched SQL Exception " + e.getMessage());
-			e.printStackTrace();
 		}
 	}
 
-	private String readInputStreamToString(InputStream inputStream) throws IOException {
+	private String readInputStreamToString(InputStream inputStream) {
 		StringBuilder sb = new StringBuilder();
-		for (int ch; (ch = inputStream.read()) != -1;) {
-			sb.append((char) ch);
+		try {
+			for (int ch; (ch = inputStream.read()) != -1;)
+				sb.append((char) ch);
+		} catch(IOException e) {
+			System.out.println("Catched IO Exception " + e.getMessage() );
 		}
 		return sb.toString();
 	}

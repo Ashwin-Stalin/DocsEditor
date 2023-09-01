@@ -28,9 +28,9 @@ public class Share extends HttpServlet {
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) {
 		try (PrintWriter out = resp.getWriter()) {
 			HttpSession session = req.getSession(false);
-			if (session == null) {
+			if (session == null)
 				resp.sendRedirect("login-page");
-			}
+			
 			int userid = (int) session.getAttribute("userid");
 			int docid = Integer.parseInt(req.getParameter("doc_id"));
 			String toSendUname = req.getParameter("uname");

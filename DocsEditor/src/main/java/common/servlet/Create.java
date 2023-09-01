@@ -30,11 +30,12 @@ public class Create extends HttpServlet {
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) {
 		try (PrintWriter out = resp.getWriter()) {
 			HttpSession session = req.getSession(false);
-			if (session == null) {
+			if (session == null)
 				resp.sendRedirect("login-page");
-			}
+			
 			int userid = (int) session.getAttribute("userid");
 			String docName = req.getParameter("docname");
+			// Insert into document table and return docid 
 			PreparedStatement preparedStatement = connection.prepareStatement("insert into document(name, ownerid) values(?,?) returning docid");
 			preparedStatement.setString(1, docName);
 			preparedStatement.setInt(2, userid);
@@ -43,6 +44,7 @@ public class Create extends HttpServlet {
 				int docid = rs.getInt("docid");
 				String c = "";
 				InputStream content = new ByteArrayInputStream(c.getBytes());
+				// Insert into versions table and return versionid
 				preparedStatement = connection.prepareStatement("insert into versions(docid, content, editeduserid) values(?,?,?) returning versionid");
 				preparedStatement.setInt(1, docid);
 				preparedStatement.setBinaryStream(2, content);
@@ -50,6 +52,7 @@ public class Create extends HttpServlet {
 				ResultSet res = preparedStatement.executeQuery();
 				if (res.next()) {
 					int newversionid = res.getInt("versionid");
+					// Updating document table's current version with versionid
 					preparedStatement = connection.prepareStatement("update document set currentversion=? where docid=?");
 					preparedStatement.setInt(1, newversionid);
 					preparedStatement.setInt(2, docid);
