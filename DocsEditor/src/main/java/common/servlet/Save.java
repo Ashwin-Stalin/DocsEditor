@@ -10,6 +10,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.LinkedList;
 
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -53,10 +54,10 @@ public class Save extends HttpServlet {
 					out.println("Nothing to Save");
 				else {
 					// If not same, deleting all the other versions after the current version int versions table (for redo functionality)
-					PreparedStatement pS = connection.prepareStatement("delete from versions where versionid>? and docid=?;");
-					pS.setInt(1, versionid);
-					pS.setInt(2, docid);
-					pS.executeUpdate();
+//					PreparedStatement pS = connection.prepareStatement("delete from versions where versionid>? and docid=?;");
+//					pS.setInt(1, versionid);
+//					pS.setInt(2, docid);
+//					pS.executeUpdate();
 					// Inserting new content into version table and returning versionid
 					PreparedStatement preparedStatement = connection.prepareStatement("insert into versions(docid, content, editeduserid) values(?,?,?) returning versionid");
 					preparedStatement.setInt(1, docid);
@@ -66,9 +67,12 @@ public class Save extends HttpServlet {
 					if (rs.next()) {
 						int newversionid = rs.getInt("versionid");
 						// Updating the version id to document table
-						preparedStatement = connection.prepareStatement("update document set currentversion=? where docid=?");
+						preparedStatement = connection.prepareStatement("update document set currentversion=? where docid=?; insert into versionmapping(docid, fromversion, toversion) values(?,?,?);");
 						preparedStatement.setInt(1, newversionid);
 						preparedStatement.setInt(2, docid);
+						preparedStatement.setInt(3, docid);
+						preparedStatement.setInt(4, versionid);
+						preparedStatement.setInt(5, newversionid);
 						preparedStatement.executeUpdate();
 					}
 
@@ -82,7 +86,9 @@ public class Save extends HttpServlet {
 					preparedStatement.setBinaryStream(1, patchContent);
 					preparedStatement.setInt(2, versionid);
 					preparedStatement.executeUpdate();
-					out.println("Saved Successfully");
+					String scriptTag = "<script>document.querySelector('#savedsuccess').style=\"color: blue;\";</script> ";
+					req.setAttribute("savedsuccess", scriptTag);
+					req.getRequestDispatcher("open?doc_id"+docid).include(req, resp);
 				}
 			}
 			out.println("</body>");
@@ -91,6 +97,8 @@ public class Save extends HttpServlet {
 			System.out.println("Catched IO Exception " + e.getMessage());
 		} catch (SQLException e) {
 			System.out.println("Catched SQL Exception " + e.getMessage());
+		} catch (ServletException e) {
+			System.out.println("Catched Servlet Exception " + e.getMessage());
 		}
 	}
 

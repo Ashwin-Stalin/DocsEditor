@@ -180,6 +180,15 @@
   </servlet-mapping>
   
   <servlet>
+  	<servlet-name>ChangeVersionServlet</servlet-name>
+  	<servlet-class>common.servlet.ChangeVersion</servlet-class>
+  </servlet>
+  <servlet-mapping>
+  	<servlet-name>ChangeVersionServlet</servlet-name>
+  	<url-pattern>/changeVersion</url-pattern>
+  </servlet-mapping>
+  
+  <servlet>
   	<servlet-name>LogOutServlet</servlet-name>
   	<servlet-class>common.servlet.LogOut</servlet-class>
   </servlet>
