@@ -37,7 +37,6 @@ public class ChangeVersion extends HttpServlet {
 			if (session == null)
 				resp.sendRedirect("login-page");
 			
-			int userid = (int) session.getAttribute("userid");
 			int docid = Integer.parseInt(req.getParameter("doc_id"));
 			int currentVersion = Integer.parseInt(req.getParameter("current_version_id"));
 			int versionToChange = Integer.parseInt(req.getParameter("version_id_to_change"));
@@ -55,9 +54,8 @@ public class ChangeVersion extends HttpServlet {
 					int version = rs.getInt("fromversion");
 					sourceVersionIds.add(version);
 					versionToAdd = version;
-				}else {
+				}else
 					break;
-				}
 			}
 			versionToAdd = versionToChange;
 			destinationVersionIds.add(versionToAdd);
@@ -70,9 +68,8 @@ public class ChangeVersion extends HttpServlet {
 					int version = rs.getInt("fromversion");
 					destinationVersionIds.add(version);
 					versionToAdd = version;
-				}else {
+				}else
 					break;
-				}
 			}
 			System.out.println("Changing to version " + versionToChange + " From " + currentVersion);
 			System.out.println("Source versions "  + sourceVersionIds.toString());
@@ -169,7 +166,6 @@ public class ChangeVersion extends HttpServlet {
 					System.out.println(patchedText);
 					System.out.println(patch);
 					
-					// Updating versions table and document table for the redo functionality
 					PreparedStatement pS = connection.prepareStatement("update versions set content=? where versionid=?;update versions set content=? where versionid=?;update document set currentversion=? where docid=?");
 					pS.setBinaryStream(1, retrievedText);
 					pS.setInt(2, destinationVersionIds.get(i));

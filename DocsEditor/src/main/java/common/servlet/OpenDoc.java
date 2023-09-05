@@ -64,13 +64,11 @@ public class OpenDoc extends HttpServlet {
 					}
 					out.println("<form action=\"save?doc_id=" + docid + "\" method=\"POST\">");
 					out.println("<input type=\"submit\" value=\"Make New Version\">");
-					for(Integer versionid: toVersionIds) {
+					
+					for(Integer versionid: toVersionIds)
 						out.println("<button type=\"button\"><a href=\"changeVersion?version_id_to_change=" + versionid + "&current_version_id="+ currentVersion +"&doc_id="+docid+"\">Change To Version "+ versionid + "</a></button>");
-					}
-//					out.println("<button type=\"button\"><a href=\"undo?doc_id=" + docid + "\">Undo</a></button>");
-//					out.println("<button type=\"button\"><a href=\"redo?doc_id=" + docid + "\">Redo</a></button><br><br>");
-					out.println("<br><br><textarea name=\"textToSave\" rows=\"40\" cols=\"80\">" + fileContent);
-					out.println("</textarea>");
+					
+					out.println("<br><br><textarea name=\"textToSave\" rows=\"40\" cols=\"80\">" +fileContent+ "</textarea>");
 					out.println("</form>");
 					
 					PreparedStatement prepareS = connection.prepareStatement("select fromversion from versionmapping where docid=? order by fromversion asc limit 1");
@@ -107,14 +105,11 @@ public class OpenDoc extends HttpServlet {
 							}
 							out.println("<form action=\"save?doc_id=" + docid + "\" method=\"POST\">");
 							out.println("<input type=\"submit\" value=\"Make New Version\">");
-							for(Integer versionid: toVersionIds) {
+							
+							for(Integer versionid: toVersionIds) 
 								out.println("<button type=\"button\"><a href=\"changeVersion?version_id_to_change=" + versionid + "&current_version_id="+ currentVersion +"&doc_id="+docid+"\">Change To Version "+ versionid + "</a></button>");
-							}
-//							out.println("<button type=\"button\"><a href=\"undo?doc_id=" + docid + "\">Undo</a></button>");
-//							out.println("<button type=\"button\"><a href=\"redo?doc_id=" + docid + "\">Redo</a></button><br><br>");
-							out.println("<br><br><textarea name=\"textToSave\" rows=\"40\" cols=\"80\">");
-							out.println(fileContent);
-							out.println("</textarea>");
+							
+							out.println("<br><br><textarea name=\"textToSave\" rows=\"40\" cols=\"80\">"+fileContent+ "</textarea>");
 							out.println("</form>");
 							PreparedStatement prepareS = connection.prepareStatement("select fromversion from versionmapping where docid=? order by fromversion asc limit 1");
 							prepareS.setInt(1, docid);
@@ -133,9 +128,8 @@ public class OpenDoc extends HttpServlet {
 						else
 							out.println("Error");
 					}
-				} else {
+				} else
 					out.print("Not authorized");
-				}
 			}
 			if (scriptTag != null)
 				out.println(scriptTag);
@@ -176,12 +170,11 @@ public class OpenDoc extends HttpServlet {
 					out.print(" ~|~ <button type=\"button\"><a href=\"changeVersion?version_id_to_change="+ version +"&current_version_id="+currentVersionId+"&doc_id=" + docid+"\">Version "+ version +" </a></button>");
 					versionList.add(version);
 				}
-				for(Integer version : versionList) {
+				for(Integer version : versionList)
 					displayVersionTree(docid, out, version, currentVersionId);
-				}
 
 		}catch (SQLException e) {
-			System.out.print("Catched IO Exception " + e.getMessage());
+			System.out.print("Catched SQL Exception " + e.getMessage());
 		}
 	}
 	
@@ -202,7 +195,7 @@ public class OpenDoc extends HttpServlet {
 				out.println("<br><br>");
 			}
 		} catch (SQLException e) {
-			System.out.print("Catched IO Exception " + e.getMessage());
+			System.out.print("Catched SQL Exception " + e.getMessage());
 		}
 	}
 }

@@ -53,11 +53,6 @@ public class Save extends HttpServlet {
 				if (newContent.contentEquals(previousContent))
 					out.println("Nothing to Save");
 				else {
-					// If not same, deleting all the other versions after the current version int versions table (for redo functionality)
-//					PreparedStatement pS = connection.prepareStatement("delete from versions where versionid>? and docid=?;");
-//					pS.setInt(1, versionid);
-//					pS.setInt(2, docid);
-//					pS.executeUpdate();
 					// Inserting new content into version table and returning versionid
 					PreparedStatement preparedStatement = connection.prepareStatement("insert into versions(docid, content, editeduserid) values(?,?,?) returning versionid");
 					preparedStatement.setInt(1, docid);
