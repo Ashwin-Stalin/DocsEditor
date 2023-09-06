@@ -18,6 +18,7 @@ public class LoginPage extends HttpServlet {
 			
 			String invalidScriptTag = (String) req.getAttribute("invalid");
 			String registrationScriptTag = (String) req.getAttribute("registration");
+			
 			out.println("<html><body");
 			out.println("<h3><i id=\"registration\" style=\"color: blue; display: none;\">Registration Successfull</i><br></h3>");
 			out.println("<div class=\"form\"><form action=\"login\" method=\"post\">");
@@ -28,10 +29,12 @@ public class LoginPage extends HttpServlet {
 			out.println("<input type=\"submit\" value=\"LOGIN\"><br><br>");
 			out.println("<h4>Don't have an account? <a href=\"register-page\">Sign Up</a></h4>");
 			out.println("</div></form>");
+			
 			if (invalidScriptTag != null)
 				out.println(invalidScriptTag);
 			if (registrationScriptTag != null)
 				out.println(registrationScriptTag);
+			
 			out.println("</body></html>");
 			
 		} catch (IOException e) {

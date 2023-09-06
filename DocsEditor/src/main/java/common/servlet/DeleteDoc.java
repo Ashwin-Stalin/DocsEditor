@@ -33,13 +33,12 @@ public class DeleteDoc extends HttpServlet {
 			
 			int userid = (int) session.getAttribute("userid");
 			int docid = Integer.parseInt(req.getParameter("doc_id"));
-			// Checking User is owner or not
+
 			PreparedStatement ps = connection.prepareStatement("select * from document where docid=? and ownerid=?");
 			ps.setInt(1, docid);
 			ps.setInt(2, userid);
 			ResultSet rs = ps.executeQuery();
 			if (rs.next()) {
-				// If owner, delete the record from document (versions table will automatically deleted because of ON DELETE CASCADE) and docshared
 				PreparedStatement preparedStatement = connection.prepareStatement("delete from docshared where docid=? ; delete from document where docid=?;");
 				preparedStatement.setInt(1, docid);
 				preparedStatement.setInt(2, docid);
@@ -48,7 +47,6 @@ public class DeleteDoc extends HttpServlet {
 				req.setAttribute("deleteSuccess", scriptTag);
 				req.getRequestDispatcher("documents").include(req, resp);
 			} else {
-				// If not owner, delete the record from docshared table if user received it
 				PreparedStatement preparedStatement = connection.prepareStatement("delete from docshared where docid=? and receiverid=?");
 				preparedStatement.setInt(1, docid);
 				preparedStatement.setInt(2, userid);

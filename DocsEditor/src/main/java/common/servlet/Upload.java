@@ -31,27 +31,31 @@ public class Upload extends HttpServlet {
 			HttpSession session = req.getSession(false);
 			if (session == null)
 				resp.sendRedirect("login-page");
+			
 			int userid = (int) session.getAttribute("userid");
+			
 			for (Part part : req.getParts()) {
 				if (part.getName().equals("docs") && part.getSize() > 0) {
 					String fileName = Paths.get(part.getSubmittedFileName()).getFileName().toString();
 					InputStream filecontent = part.getInputStream();
-					// Inserting into document table and returning docid
+					
 					PreparedStatement preparedStatement = connection.prepareStatement("insert into document(name,ownerid) values(?,?) returning docid");
 					preparedStatement.setString(1, fileName);
 					preparedStatement.setInt(2, userid);
 					ResultSet resultSet = preparedStatement.executeQuery();
+					
 					if (resultSet.next()) {
 						int docid = resultSet.getInt("docid");
-						// Inserting into versions table and returning versionid
+						
 						preparedStatement = connection.prepareStatement("insert into versions(docid, content, editeduserid) values(?, ?, ?) returning versionid");
 						preparedStatement.setInt(1, docid);
 						preparedStatement.setBinaryStream(2, filecontent, filecontent.available());
 						preparedStatement.setInt(3, userid);
 						ResultSet rs = preparedStatement.executeQuery();
+						
 						if (rs.next()) {
 							int versionid = rs.getInt("versionid");
-							// Updating the document table's current version
+							
 							preparedStatement = connection.prepareStatement("update document set currentversion=? where docid=?");
 							preparedStatement.setInt(1, versionid);
 							preparedStatement.setInt(2, docid);
@@ -64,7 +68,9 @@ public class Upload extends HttpServlet {
 					}
 				}
 			}
+			
 			String scriptTag = "<script>document.querySelector('#uploaded').style=\"color: blue;\";</script> ";
+			
 			req.setAttribute("uploaded", scriptTag);
 			req.getRequestDispatcher("uploadDocs").include(req, resp);
 		} catch (IOException e) {

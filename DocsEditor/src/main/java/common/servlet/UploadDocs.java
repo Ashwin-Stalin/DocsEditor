@@ -17,8 +17,10 @@ public class UploadDocs extends HttpServlet {
 			HttpSession session = req.getSession(false);
 			if (session == null)
 				resp.sendRedirect("login-page");
+			
 			String errorScriptTag = (String) req.getAttribute("error");
 			String uploadedScriptTag = (String) req.getAttribute("uploaded");
+			
 			out.println("<html>");
 			out.println("<body>");
 			out.println("<h3><i id=\"uploaded\" style=\"color: blue; display: none;\">Uploaded Successfully</i></h3>");
@@ -30,10 +32,12 @@ public class UploadDocs extends HttpServlet {
 			out.println("<i id=\"error-file\" style=\"color: red; display: none;\">*Invalid File Type</i><br>");
 			out.println("<input type=\"submit\" value=\"Upload\">");
 			out.println("</form>");
+			
 			if (errorScriptTag != null)
 				out.print(errorScriptTag);
 			if (uploadedScriptTag != null)
 				out.print(uploadedScriptTag);
+			
 			out.println("</body>");
 			out.println("</html>");
 		} catch (IOException e) {

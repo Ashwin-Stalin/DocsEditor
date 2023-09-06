@@ -29,18 +29,20 @@ public class Login extends HttpServlet {
 		try (PrintWriter out = resp.getWriter()) {
 			String uname = req.getParameter("uname");
 			String pass = req.getParameter("pass");
-			// Checking username and password are in users table
+			
 			PreparedStatement preparedStatement = connection.prepareStatement("select * from users where username=? and password=?");
 			preparedStatement.setString(1, uname);
 			preparedStatement.setString(2, pass);
 			ResultSet rs = preparedStatement.executeQuery();
 			if (rs.next()) {
 				HttpSession session = req.getSession();
+				
 				session.setAttribute("name", uname);
 				session.setAttribute("userid", rs.getInt("userid"));
 				resp.sendRedirect("home");
 			} else {
 				String invalidScriptTag = "<script>document.querySelector('#invalid').style=\"color: red;\";</script> ";
+				
 				req.setAttribute("invalid", invalidScriptTag);
 				req.getRequestDispatcher("login-page").include(req, resp);
 			}

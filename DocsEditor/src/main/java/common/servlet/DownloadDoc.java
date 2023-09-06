@@ -33,7 +33,7 @@ public class DownloadDoc extends HttpServlet {
 
 			int userid = (int) session.getAttribute("userid");
 			int docid = Integer.parseInt(req.getParameter("doc_id"));
-			// Retrieving content and filename by joining document and versions table 
+			
 			PreparedStatement preparedStatement = connection.prepareStatement("select name, content from document join versions on document.currentversion=versions.versionid where document.docid=? and document.ownerid=?");
 			preparedStatement.setObject(1, docid);
 			preparedStatement.setObject(2, userid);
@@ -42,6 +42,7 @@ public class DownloadDoc extends HttpServlet {
 				InputStream content = rs.getBinaryStream("content");
 				String fileContent = readInputStreamToString(content);
 				String docName = rs.getString("name");
+				
 				resp.setContentType("text/plain");
 				resp.setHeader("Content-Disposition", "attachment; filename=" + docName);
 				out.write(fileContent);

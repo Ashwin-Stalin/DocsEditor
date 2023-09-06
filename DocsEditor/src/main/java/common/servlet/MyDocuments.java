@@ -34,10 +34,11 @@ public class MyDocuments extends HttpServlet {
 			int userid = (int) session.getAttribute("userid");
 			String scriptShareTag = (String) req.getAttribute("sharedSuccess");
 			String scriptdeleteTag = (String) req.getAttribute("deleteSuccess");
-			// Retrieving name and docid from document table
+			
 			PreparedStatement preparedStatement = connection.prepareStatement("select name,docid from document where ownerid=?");
 			preparedStatement.setInt(1, userid);
 			ResultSet rs = preparedStatement.executeQuery();
+			
 			out.println("<html>");
 			out.println("<body>");
 			out.println("<h3><i id=\"deleteSuccess\" style=\"color: blue; display: none;\">Document deleted Successfully</i></h3>");
@@ -50,6 +51,7 @@ public class MyDocuments extends HttpServlet {
 			out.println("<input type=\"submit\" value=\"Create New Document\">");
 			out.println("</form><br>");
 			out.println("<div id=\"container\">");
+			
 			while (rs.next()) {
 				int docid = rs.getInt("docid");
 				out.println("<div> ");
@@ -69,10 +71,11 @@ public class MyDocuments extends HttpServlet {
 				out.println("</form>");
 				out.println("</div>");
 				out.println("<div class=\"overlay\" style=\"display: none;position: fixed;top: 0;left: 0;width: 100%;height: 100%;z-index: 99;background-color: rgba(0, 0, 0, 0.5);\"></div>");
-				out.println("</div>");
+				out.println("</div><br>");
 			}
+			
 			out.println("</div>");
-			// script tags for share button
+
 			out.println("<script>");
 			out.println("document.addEventListener('DOMContentLoaded', function() {");
 			out.println("const container = document.getElementById('container');");
@@ -92,10 +95,12 @@ public class MyDocuments extends HttpServlet {
 			out.println("});");
 			out.println("});");
 			out.println("</script>");
+			
 			if (scriptShareTag != null)
 				out.println(scriptShareTag);
 			if (scriptdeleteTag != null)
 				out.println(scriptdeleteTag);
+			
 			out.println("</body>");
 			out.println("</html>");
 		} catch (IOException e) {

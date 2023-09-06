@@ -17,7 +17,9 @@ public class HomePage extends HttpServlet {
 			HttpSession session = req.getSession(false);
 			if (session == null)
 				resp.sendRedirect("login-page");
+			
 			String name = (String) session.getAttribute("name");
+			
 			out.println("<html>");
 			out.println("<body>");
 			req.getRequestDispatcher("links.html").include(req, resp);

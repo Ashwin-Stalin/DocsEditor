@@ -35,18 +35,23 @@ public class Share extends HttpServlet {
 			int docid = Integer.parseInt(req.getParameter("doc_id"));
 			String toSendUname = req.getParameter("uname");
 			String permission = req.getParameter("permission");
+			
 			PreparedStatement preparedStatement = connection.prepareStatement("select userid from users where username=? and userid!=?");
 			preparedStatement.setString(1, toSendUname);
 			preparedStatement.setInt(2, userid);
 			ResultSet rs = preparedStatement.executeQuery();
+			
 			while (rs.next()) {
 				int toSendUserid = rs.getInt("userid");
+				
 				preparedStatement = connection.prepareStatement("select * from docshared where docid=? and receiverid=?");
 				preparedStatement.setObject(1, docid);
 				preparedStatement.setInt(2, toSendUserid);
 				ResultSet res = preparedStatement.executeQuery();
+				
 				if (res.next()) {
 					out.println("<font color=red> You already shared this document to this user. Try changing permission </font>");
+					
 					req.getRequestDispatcher("documents").include(req, resp);
 
 				} else {
@@ -55,7 +60,9 @@ public class Share extends HttpServlet {
 					preparedStatement.setInt(2, toSendUserid);
 					preparedStatement.setString(3, permission);
 					preparedStatement.executeUpdate();
+					
 					String scriptTag = "<script>document.querySelector('#sharedSuccess').style=\"color: blue;\";</script> ";
+					
 					req.setAttribute("sharedSuccess", scriptTag);
 					req.getRequestDispatcher("documents").include(req, resp);
 				}

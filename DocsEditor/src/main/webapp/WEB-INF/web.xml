@@ -189,6 +189,24 @@
   </servlet-mapping>
   
   <servlet>
+  	<servlet-name>HistoryServlet</servlet-name>
+  	<servlet-class>common.servlet.History</servlet-class>
+  </servlet>
+  <servlet-mapping>
+  	<servlet-name>HistoryServlet</servlet-name>
+  	<url-pattern>/history</url-pattern>
+  </servlet-mapping>
+  
+  <servlet>
+  	<servlet-name>ViewServlet</servlet-name>
+  	<servlet-class>common.servlet.View</servlet-class>
+  </servlet>
+  <servlet-mapping>
+  	<servlet-name>ViewServlet</servlet-name>
+  	<url-pattern>/view</url-pattern>
+  </servlet-mapping>
+  
+  <servlet>
   	<servlet-name>LogOutServlet</servlet-name>
   	<servlet-class>common.servlet.LogOut</servlet-class>
   </servlet>

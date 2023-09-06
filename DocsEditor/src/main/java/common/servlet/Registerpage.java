@@ -19,6 +19,7 @@ public class Registerpage extends HttpServlet {
 			
 			String scriptUnameTag = (String) req.getAttribute("username-taken");
 			String scriptPassTag = (String) req.getAttribute("pass-cpass");
+			
 			out.println("<html>");
 			out.println("<body>");
 			out.println("<br>");
@@ -32,10 +33,12 @@ public class Registerpage extends HttpServlet {
 			out.println("<input type=\"submit\" value=\"REGISTER\"><br><br>");
 			out.println("<h4>Have an account? <a href=\"login-page\">Sign In</a></h4>");
 			out.println("</form>");
+			
 			if (scriptUnameTag != null)
 				out.print(scriptUnameTag);
 			if (scriptPassTag != null)
 				out.print(scriptPassTag);
+			
 			out.println("</body>");
 			out.println("</html>");
 			

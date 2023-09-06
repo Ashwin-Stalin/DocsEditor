@@ -29,29 +29,31 @@ public class Register extends HttpServlet {
 			String uname = req.getParameter("uname");
 			String pass = req.getParameter("pass");
 			String cpass = req.getParameter("cpass");
+			
 			PreparedStatement preparedStatement = null;
 			if (pass.contentEquals(cpass)) {
-				// Checking username already exist or not in users table
 				preparedStatement = connection.prepareStatement("select * from users where username=?");
 				preparedStatement.setString(1, uname);
 				ResultSet rs = preparedStatement.executeQuery();
 				if (rs.next()) {
-					// If exist
 					String scriptUnameTag = "<script>document.querySelector('#username-taken').style=\"color: red;\";</script> ";
+					
 					req.setAttribute("username-taken", scriptUnameTag);
 					req.getRequestDispatcher("register-page").include(req, resp);
 				} else {
-					// If not exist, Inserting username and password into users table
 					preparedStatement = connection.prepareStatement("insert into users(username, password) values(?, ?);");
 					preparedStatement.setString(1, uname);
 					preparedStatement.setString(2, pass);
 					preparedStatement.executeUpdate();
+					
 					String scriptRegistrationTag = "<script>document.querySelector('#registration').style=\"color: blue;\";</script>";
+					
 					req.setAttribute("registration", scriptRegistrationTag);
 					req.getRequestDispatcher("login-page").include(req, resp);
 				}
 			} else {
 				String scriptPassTag = "<script>document.querySelector('#pass-cpass').style=\"color: red;\";</script> ";
+				
 				req.setAttribute("pass-cpass", scriptPassTag);
 				req.getRequestDispatcher("register-page").include(req, resp);
 			}

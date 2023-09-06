@@ -33,10 +33,11 @@ public class SharedWithMe extends HttpServlet {
 			
 			int userid = (int) session.getAttribute("userid");
 			String scriptdeleteTag = (String) req.getAttribute("deleteSuccess");
-			// Retrieving all the record which is shared to the user by joining docshared and document table
+
 			PreparedStatement preparedStatement = connection.prepareStatement(" select ds.shareid ,ds.docid, ds.receiverid, ds.permission, d.ownerid, d.name  from docshared as ds join document as d on ds.docid=d.docid  where receiverid=?");
 			preparedStatement.setInt(1, userid);
 			ResultSet rs = preparedStatement.executeQuery();
+			
 			out.println("<html>");
 			out.println("<body>");
 			out.println("<h3><i id=\"deleteSuccess\" style=\"color: blue; display: none;\">Document deleted Successfully</i></h3>");
@@ -44,17 +45,22 @@ public class SharedWithMe extends HttpServlet {
 			req.getRequestDispatcher("links.html").include(req, resp);
 			out.println("<br><br>");
 			out.println("<div id=\"container\">");
+			
 			while (rs.next()) {
 				int docid = rs.getInt("docid");
+				
 				out.println("<div> ");
 				out.println(rs.getString("name"));
 				out.println("<a href=\"open?doc_id=" + docid + "\"><input type=\"button\" value=\"Open\" /></a>");
 				out.println("<a href=\"delete?doc_id=" + docid + "\"><input type=\"button\" value=\"Delete\" /></a>");
 				out.println("</div>");
 			}
+			
 			out.println("</div>");
+			
 			if (scriptdeleteTag != null)
 				out.println(scriptdeleteTag);
+			
 			out.println("</body>");
 			out.println("</html>");
 		} catch (IOException e) {

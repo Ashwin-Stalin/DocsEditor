@@ -43,6 +43,7 @@ public class ChangeVersion extends HttpServlet {
 			
 			List<Integer> sourceVersionIds = new ArrayList<>();
 			List<Integer> destinationVersionIds = new ArrayList<>();
+			
 			int versionToAdd = currentVersion;
 			sourceVersionIds.add(versionToAdd);
 			while(true) {
@@ -57,6 +58,7 @@ public class ChangeVersion extends HttpServlet {
 				}else
 					break;
 			}
+			
 			versionToAdd = versionToChange;
 			destinationVersionIds.add(versionToAdd);
 			while(true) {
@@ -71,9 +73,7 @@ public class ChangeVersion extends HttpServlet {
 				}else
 					break;
 			}
-			System.out.println("Changing to version " + versionToChange + " From " + currentVersion);
-			System.out.println("Source versions "  + sourceVersionIds.toString());
-			System.out.println("Destination versions "  + destinationVersionIds.toString());
+			
 			int removedVersionId = 0 ;
 			while(true) {
 				if(sourceVersionIds.size() == 0 || destinationVersionIds.size() == 0) {
@@ -92,10 +92,6 @@ public class ChangeVersion extends HttpServlet {
 				}
 			}
 			
-			System.out.println("Changing to version " + versionToChange + " From " + currentVersion);
-			System.out.println("Source versions "  + sourceVersionIds.toString());
-			System.out.println("Destination versions "  + destinationVersionIds.toString());
-			
 			int cV = currentVersion;
 			for(Integer versionid : sourceVersionIds) {
 				if(versionid == cV)
@@ -111,9 +107,6 @@ public class ChangeVersion extends HttpServlet {
 					InputStream p = rs.getBinaryStream("previousContent");
 					String currentContent = readInputStreamToString(c);
 					String previousContent = readInputStreamToString(p);
-					
-					System.out.println("Current Content : " + currentContent);
-					System.out.println("Previous Content : " + previousContent);
 					
 					LinkedList<diff_match_patch.Patch> patches = (LinkedList<diff_match_patch.Patch>) dmp.patch_fromText(previousContent);
 					Object[] results = dmp.patch_apply(patches, currentContent);
@@ -136,7 +129,7 @@ public class ChangeVersion extends HttpServlet {
 					cV = versionid;
 				}
 			}
-			System.out.println("Redo Called");
+			
 			for(int i = destinationVersionIds.size()-1; i >= 0; i--){
 				PreparedStatement preparedStatement = connection.prepareStatement("select c.content as currentContent, p.content as afterContent from versions as c join versions as p on c.docid=p.docid where c.versionid=? and p.versionid=? and c.docid=?");
 				preparedStatement.setInt(1, cV);
@@ -150,9 +143,6 @@ public class ChangeVersion extends HttpServlet {
 					String currentContent = readInputStreamToString(c);
 					String afterContent = readInputStreamToString(a);
 					
-					System.out.println("Current Content : " + currentContent);
-					System.out.println("After Content : " + afterContent);
-					
 					LinkedList<diff_match_patch.Patch> patches = (LinkedList<diff_match_patch.Patch>) dmp.patch_fromText(afterContent);
 					Object[] results = dmp.patch_apply(patches, currentContent);
 					String patchedText = (String) results[0];
@@ -162,9 +152,6 @@ public class ChangeVersion extends HttpServlet {
 					dmp.diff_cleanupSemantic(diffs);
 					String patch = dmp.patch_toText(dmp.patch_make(diffs));
 					InputStream patchContent = new ByteArrayInputStream(patch.getBytes());
-					
-					System.out.println(patchedText);
-					System.out.println(patch);
 					
 					PreparedStatement pS = connection.prepareStatement("update versions set content=? where versionid=?;update versions set content=? where versionid=?;update document set currentversion=? where docid=?");
 					pS.setBinaryStream(1, retrievedText);

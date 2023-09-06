@@ -36,19 +36,21 @@ public class Redo extends HttpServlet {
 				resp.sendRedirect("login-page");
 
 			int docid = Integer.parseInt(req.getParameter("doc_id"));
-			// Retrieving current version content by joining document and versions table
+			
 			PreparedStatement ps = connection.prepareStatement("select versionid, content from document join versions on document.currentversion=versions.versionid where document.docid=? limit 1");
 			ps.setInt(1, docid);
 			ResultSet res = ps.executeQuery();
+			
 			if (res.next()) {
 				int currentVersionid = res.getInt("versionid");
 				InputStream content = res.getBinaryStream("content");
 				String currentContent = readInputStreamToString(content);
-				// Retrieving next version content from version table if it was there
+				
 				PreparedStatement preparedStatement = connection.prepareStatement("select versionid,content from versions where docid=? and versionid>? order by versionid asc limit 1");
 				preparedStatement.setInt(1, docid);
 				preparedStatement.setInt(2, currentVersionid);
 				ResultSet rs = preparedStatement.executeQuery();
+				
 				if (rs.next()) {
 					diff_match_patch dmp = new diff_match_patch();
 					int afterVersionid = rs.getInt("versionid");
@@ -64,7 +66,7 @@ public class Redo extends HttpServlet {
 					dmp.diff_cleanupSemantic(diffs);
 					String patch = dmp.patch_toText(dmp.patch_make(diffs));
 					InputStream patchContent = new ByteArrayInputStream(patch.getBytes());
-					// Updating versions table and document table for the redo functionality
+					
 					PreparedStatement pS = connection.prepareStatement("update versions set content=? where versionid=?;update versions set content=? where versionid=?;update document set currentversion=? where docid=?");
 					pS.setBinaryStream(1, retrievedText);
 					pS.setInt(2, afterVersionid);
