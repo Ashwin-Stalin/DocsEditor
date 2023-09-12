@@ -1,9 +1,9 @@
 # DocsEditor
 TomcatServer, PostgreSQL Database
 
-## Usage
+### Usage
 
-### GET /login
+#### GET /login
 	Returning API Key
 	Parameter: {uname=?}{pass=?}
 
