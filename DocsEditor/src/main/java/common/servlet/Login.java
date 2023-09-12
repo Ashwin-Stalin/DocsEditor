@@ -13,54 +13,64 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import com.google.gson.Gson;
+import common.model.Response;
+
 import common.db.Database;
 
 public class Login extends HttpServlet {
-	private static Connection connection = null;
-	private final static Database db = Database.getInstance();
-
-	@Override
-	public void init() {
-		connection = db.getConnection();
-	}
-
-	@Override
-	protected void doPost(HttpServletRequest req, HttpServletResponse resp) {
-		try (PrintWriter out = resp.getWriter()) {
-			String uname = req.getParameter("uname");
-			String pass = req.getParameter("pass");
-			
-			PreparedStatement preparedStatement = connection.prepareStatement("select * from users where username=? and password=?");
-			preparedStatement.setString(1, uname);
-			preparedStatement.setString(2, pass);
-			ResultSet rs = preparedStatement.executeQuery();
-			if (rs.next()) {
-				HttpSession session = req.getSession();
-				
-				session.setAttribute("name", uname);
-				session.setAttribute("userid", rs.getInt("userid"));
-				resp.sendRedirect("home");
-			} else {
-				String invalidScriptTag = "<script>document.querySelector('#invalid').style=\"color: red;\";</script> ";
-				
-				req.setAttribute("invalid", invalidScriptTag);
-				req.getRequestDispatcher("login-page").include(req, resp);
-			}
-		} catch (SQLException e) {
-			System.out.println("Catched SQL Exception " + e.getMessage());
-		} catch (IOException e) {
-			System.out.println("Catched IO Exception " + e.getMessage());
-		} catch (ServletException e) {
-			System.out.println("Catched Servlet Exception " + e.getMessage());
-		}
-	}
+	private final Connection connection = Database.getConnection();
 
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) {
-		try {
-			resp.sendRedirect("login-page");
-		} catch (IOException e) {
-			System.out.println("Catch IO Exception : " + e.getMessage());
+		try{
+			String username = req.getParameter("uname");
+			String password = req.getParameter("pass");
+			
+			PreparedStatement preparedStatement = connection.prepareStatement("select apikey from users where username=? and password=?");
+			preparedStatement.setString(1, username);
+			preparedStatement.setString(2, password);
+			ResultSet rs = preparedStatement.executeQuery();
+			if (rs.next()) {
+				String apikey = rs.getString("apikey");
+				respond(resp, 200, apikey, false);
+			} else
+				respond(resp, 401, "Unauthorized!", true);
+		} catch (SQLException e) {
+			respond(resp, 500, "Internal Server Error", true);
+		}
+	}
+	
+	@Override
+	protected void doPost(HttpServletRequest req, HttpServletResponse resp) {
+		respond(resp, 405, "POST Method Not Allowed", true);
+	}
+
+	@Override
+	protected void doPut(HttpServletRequest req, HttpServletResponse resp) {
+		respond(resp, 405, "PUT Method Not Allowed", true);
+	}
+
+	
+	@Override
+	protected void doDelete(HttpServletRequest req, HttpServletResponse resp) {
+		respond(resp, 405, "DELETE Method Not Allowed", true);
+	}
+
+	private void respond(HttpServletResponse response, int statusCode, String message, boolean error) {
+		try(PrintWriter out = response.getWriter()){
+			Response res = new Response();
+			Gson gson = new Gson();
+			response.setStatus(statusCode);
+			if(error)
+				res.setError(message);
+			else
+				res.setMessage(message);
+			response.setContentType("application/json");
+			String jsonResponse = gson.toJson(res);
+			out.println(jsonResponse);
+		}catch(IOException ioexception) {
+			ioexception.printStackTrace();
 		}
 	}
 

@@ -6,73 +6,108 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Random;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.google.gson.Gson;
+
 import common.db.Database;
+import common.model.Response;
 
 public class Register extends HttpServlet {
-	private static Connection connection = null;
-	private final static Database db = Database.getInstance();
-
-	@Override
-	public void init() throws ServletException {
-		connection = db.getConnection();
-	}
+	private final Connection connection = Database.getConnection();
 
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) {
-		try (PrintWriter out = resp.getWriter()) {
-			String uname = req.getParameter("uname");
-			String pass = req.getParameter("pass");
-			String cpass = req.getParameter("cpass");
+		try{
+			String username = req.getParameter("uname");
+			String password = req.getParameter("pass");
+			String cpassword = req.getParameter("cpass");
 			
 			PreparedStatement preparedStatement = null;
-			if (pass.contentEquals(cpass)) {
+			if (password.contentEquals(cpassword)) {
 				preparedStatement = connection.prepareStatement("select * from users where username=?");
-				preparedStatement.setString(1, uname);
+				preparedStatement.setString(1, username);
 				ResultSet rs = preparedStatement.executeQuery();
-				if (rs.next()) {
-					String scriptUnameTag = "<script>document.querySelector('#username-taken').style=\"color: red;\";</script> ";
-					
-					req.setAttribute("username-taken", scriptUnameTag);
-					req.getRequestDispatcher("register-page").include(req, resp);
-				} else {
-					preparedStatement = connection.prepareStatement("insert into users(username, password) values(?, ?);");
-					preparedStatement.setString(1, uname);
-					preparedStatement.setString(2, pass);
+				if (rs.next()) 
+					respond(resp, 409, "Username Already Exists", true);
+				else {
+					String apikey = generateUniqueAPIKey(resp);	
+					preparedStatement = connection.prepareStatement("insert into users(username, password, apikey) values(?, ?, ?);");
+					preparedStatement.setString(1, username);
+					preparedStatement.setString(2, password);
+					preparedStatement.setString(3, apikey);
 					preparedStatement.executeUpdate();
-					
-					String scriptRegistrationTag = "<script>document.querySelector('#registration').style=\"color: blue;\";</script>";
-					
-					req.setAttribute("registration", scriptRegistrationTag);
-					req.getRequestDispatcher("login-page").include(req, resp);
+					respond(resp, 200, "Registration Successfull! Login!!", false);
 				}
-			} else {
-				String scriptPassTag = "<script>document.querySelector('#pass-cpass').style=\"color: red;\";</script> ";
-				
-				req.setAttribute("pass-cpass", scriptPassTag);
-				req.getRequestDispatcher("register-page").include(req, resp);
-			}
-		} catch (IOException e) {
-			System.out.println("Catched IO Exception " + e.getMessage());
+			} else 
+				respond(resp, 422, "Password and confirm password both should be equal!", true);
 		} catch (SQLException e) {
-			System.out.println("Catched SQL Exception " + e.getMessage());
-		} catch (ServletException e) {
-			System.out.println("Catched Servlet Exception " + e.getMessage());
+			respond(resp, 500, "Internal Server Error", true);
 		}
 	}
 
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) {
-		try {
-			resp.sendRedirect("register-page");
-		} catch (IOException e) {
-			System.out.println("Catch IO Exception : " + e.getMessage());
+		respond(resp, 405, "GET Method Not Allowed", true);
+	}
+
+	@Override
+	protected void doPut(HttpServletRequest req, HttpServletResponse resp) {
+		respond(resp, 405, "PUT Method Not Allowed", true);
+	}
+
+	
+	@Override
+	protected void doDelete(HttpServletRequest req, HttpServletResponse resp) {
+		respond(resp, 405, "DELETE Method Not Allowed", true);
+	}
+
+	private void respond(HttpServletResponse response, int statusCode, String message, boolean error) {
+		try(PrintWriter out = response.getWriter()){
+			Response res = new Response();
+			Gson gson = new Gson();
+			response.setStatus(statusCode);
+			if(error)
+				res.setError(message);
+			else
+				res.setMessage(message);
+			response.setContentType("application/json");
+			String jsonResponse = gson.toJson(res);
+			out.println(jsonResponse);
+		}catch(IOException ioexception) {
+			ioexception.printStackTrace();
 		}
 	}
 
+	private String randomString(int num) {
+        String alphaNumeric = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
+        StringBuilder result = new StringBuilder();
+        Random rnd = new Random();
+        while (result.length() < num) {
+            int index = (int) (rnd.nextFloat() * alphaNumeric.length());
+            result.append(alphaNumeric.charAt(index));
+        }
+        return result.toString();
+    }
+	
+	private String generateUniqueAPIKey(HttpServletResponse response) {
+		try{
+			String apiKey = randomString(32);
+			PreparedStatement preparedStatement = connection.prepareStatement("select * from users where apikey=?");
+			preparedStatement.setString(1, apiKey);
+			ResultSet res = preparedStatement.executeQuery();
+			if(res.next())
+				apiKey = generateUniqueAPIKey(response);
+			return apiKey;
+			
+		} catch (SQLException e) {
+			respond(response, 500, "Internal Server Error", true);
+			return null;
+		}
+	}
 }
