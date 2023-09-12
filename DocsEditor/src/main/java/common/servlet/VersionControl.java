@@ -197,7 +197,7 @@ public class VersionControl extends HttpServlet {
 				break;
 			}
 		}
-		return updateContent(docid, sourceVersionIds, destinationVersionIds, currentVersion, response);
+		return updateProcess(docid, sourceVersionIds, destinationVersionIds, currentVersion, response);
 	}
 	
 	private List<String> getContentsOfVersions(List<Integer> versions, HttpServletResponse response){
@@ -256,73 +256,61 @@ public class VersionControl extends HttpServlet {
 		return null;
 	}
 	
-	private boolean updateContent(int docid, List<Integer> sourceVersionIds, List<Integer> destinationVersionIds, int currentVersion,HttpServletResponse response) {
+	private int updateContent(HttpServletResponse response, int currentVersion, int versionToChange, int docid) {
+		try {
+			PreparedStatement preparedStatement = connection.prepareStatement("select c.content as currentContent, p.content as contentToChange from versions as c join versions as p on c.docid=p.docid where c.versionid=? and p.versionid=? and c.docid=?");
+			preparedStatement.setInt(1, currentVersion);
+			preparedStatement.setInt(2, versionToChange);
+			preparedStatement.setInt(3, docid);
+			ResultSet rs = preparedStatement.executeQuery();
+			if(rs.next()) {
+				
+				InputStream c = rs.getBinaryStream("currentContent");
+				InputStream p = rs.getBinaryStream("contentToChange");
+				String currentContent = readInputStreamToString(c, response);
+				String previousContent = readInputStreamToString(p, response);
+			
+				String patchedText = getPatchedText(previousContent, currentContent);
+				InputStream retrievedText = new ByteArrayInputStream(patchedText.getBytes());
+				
+				String patch = getDiffText(patchedText, currentContent);
+				InputStream patchContent = new ByteArrayInputStream(patch.getBytes());
+				
+				PreparedStatement pS = connection.prepareStatement("update versions set content=? where versionid=?;update versions set content=? where versionid=?;update document set currentversion=? where docid=?");
+				pS.setBinaryStream(1, retrievedText);
+				pS.setInt(2, versionToChange);
+				pS.setBinaryStream(3, patchContent);
+				pS.setInt(4, currentVersion);
+				pS.setInt(5, versionToChange);
+				pS.setInt(6, docid);
+				pS.executeUpdate();
+				return versionToChange;
+			}
+			
+		} catch (SQLException e) {
+			respond(response, 500, "Internal Server Error", true);
+		}
+		return -1;
+	}
+	
+	private boolean updateProcess(int docid, List<Integer> sourceVersionIds, List<Integer> destinationVersionIds, int currentVersion,HttpServletResponse response) {
 		try {
 			int cV = currentVersion;
 			for(Integer versionid : sourceVersionIds) {
 				if(versionid == cV)
 					continue;
-				PreparedStatement preparedStatement = connection.prepareStatement("select c.content as currentContent, p.content as previousContent from versions as c join versions as p on c.docid=p.docid where c.versionid=? and p.versionid=? and c.docid=?");
-				preparedStatement.setInt(1, cV);
-				preparedStatement.setInt(2, versionid);
-				preparedStatement.setInt(3, docid);
-				ResultSet rs = preparedStatement.executeQuery();
-				if(rs.next()) {
-					
-					InputStream c = rs.getBinaryStream("currentContent");
-					InputStream p = rs.getBinaryStream("previousContent");
-					String currentContent = readInputStreamToString(c, response);
-					String previousContent = readInputStreamToString(p, response);
-				
-					String patchedText = getPatchedText(previousContent, currentContent);
-					InputStream retrievedText = new ByteArrayInputStream(patchedText.getBytes());
-					
-					String patch = getDiffText(patchedText, currentContent);
-					InputStream patchContent = new ByteArrayInputStream(patch.getBytes());
-					
-					PreparedStatement pS = connection.prepareStatement("update versions set content=? where versionid=?;update versions set content=? where versionid=?;update document set currentversion=? where docid=?");
-					pS.setBinaryStream(1, retrievedText);
-					pS.setInt(2, versionid);
-					pS.setBinaryStream(3, patchContent);
-					pS.setInt(4, cV);
-					pS.setInt(5, versionid);
-					pS.setInt(6, docid);
-					pS.executeUpdate();
-					cV = versionid;
-				}
+				cV = updateContent(response, currentVersion, versionid, docid);
+				if(cV == -1)
+					return false;
 			}
 			
 			for(int i = destinationVersionIds.size()-1; i >= 0; i--){
-				PreparedStatement preparedStatement = connection.prepareStatement("select c.content as currentContent, p.content as afterContent from versions as c join versions as p on c.docid=p.docid where c.versionid=? and p.versionid=? and c.docid=?");
-				preparedStatement.setInt(1, cV);
-				preparedStatement.setInt(2, destinationVersionIds.get(i));
-				preparedStatement.setInt(3, docid);
-				ResultSet rs = preparedStatement.executeQuery();
-				if(rs.next()) {
-					InputStream c = rs.getBinaryStream("currentContent");
-					InputStream a = rs.getBinaryStream("afterContent");
-					String currentContent = readInputStreamToString(c, response);
-					String afterContent = readInputStreamToString(a, response);
-					
-					String patchedText = getPatchedText(afterContent, currentContent);
-					InputStream retrievedText = new ByteArrayInputStream(patchedText.getBytes());
-					
-					String patch = getDiffText(patchedText, currentContent);
-					InputStream patchContent = new ByteArrayInputStream(patch.getBytes());
-					
-					PreparedStatement pS = connection.prepareStatement("update versions set content=? where versionid=?;update versions set content=? where versionid=?;update document set currentversion=? where docid=?");
-					pS.setBinaryStream(1, retrievedText);
-					pS.setInt(2, destinationVersionIds.get(i));
-					pS.setBinaryStream(3, patchContent);
-					pS.setInt(4, cV);
-					pS.setInt(5, destinationVersionIds.get(i));
-					pS.setInt(6, docid);
-					pS.executeUpdate();
-					cV = destinationVersionIds.get(i);
-				}
+				cV = updateContent(response, currentVersion, destinationVersionIds.get(i), docid);
+				if(cV == -1)
+					return false;
 	        }
 			return true;
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			respond(response, 500, "Internal Server Error", true);
 		}
 		return false;
