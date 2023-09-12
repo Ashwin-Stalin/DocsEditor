@@ -3,7 +3,7 @@ TomcatServer, PostgreSQL Database
 
 ## Usage
 
-GET /login
+GET /login<br/>
   Return API Key
 	Parameter: {uname=?}{pass=?}
 
