@@ -3,73 +3,73 @@ TomcatServer, PostgreSQL Database
 
 ## Usage
 
-GET /login<br/>
-  Return API Key<br/>
+GET /login
+	Returning API Key
 	Parameter: {uname=?}{pass=?}
 
-POST /register<br/>
-  Creates User<br/>
+POST /register
+	To create User
 	Parameter: {uname=?}{pass=?}{cpass=?}
 
-GET /docs<br/>
-	To get all documents which is created by user<br/>
+GET /docs
+	To get all documents which is created by user
 	Parameter : {sharedwithme = false | null }
 
-GET /docs<br/>
-	To get specific document by id which is created by user<br/>
+GET /docs
+	To get specific document by id which is created by user
 	Parameter : {docid=?} {sharedwithme = false | null }
 
-GET /docs <br/>
-	To get all documents which is shared to user<br/>
+GET /docs 
+	To get all documents which is shared to user
 	Parameter : {sharedwithme = true}
 
-GET /docs<br/>
-	To get specific document by id which is shared to user<br/>
+GET /docs
+	To get specific document by id which is shared to user
 	Parameter : {docid=?} {sharedwithme = true}
 
-POST /docs<br/>
-	To create new document<br/>
+POST /docs
+	To create new document
 	Parameter : {name=?} 
 
-PUT /docs<br/>
-	To update a specific document by id<br/>
+PUT /docs
+	To update a specific document by id
 	Parameter : {docid=?}
 
-DELETE /docs<br/>
-	To delete a specific document by id<br/>
+DELETE /docs
+	To delete a specific document by id
 	Parameter : {docid=?}
 
- GET /share<br/>
-	To get all documents that has been shared by user<br/>
+ GET /share
+	To get all documents that has been shared by user
 
-GET /share<br/>
-	To get all users for a specific shared document by id <br/>
+GET /share
+	To get all users for a specific shared document by id 
 	Parameter : {docid=?}
 
-POST /share<br/>
-	To share owned document with user with permission<br/>
+POST /share
+	To share owned document with user with permission
 	Parameter : {docid=?}{username=?}{permission= View-Only | All }
 
-PUT /share<br/>
-	To update permission for shared document by id<br/>
+PUT /share
+	To update permission for shared document by id
 	Parameter : {docid=?}{userid=?}{permission= View-Only | All }
 
-DELETE /share<br/>
-	To delete a specific shared document by id<br/>
+DELETE /share
+	To delete a specific shared document by id
 	Parameter : {docid=?}
 
-DELETE /share<br/>
-	To delete a specific shared document by id and receiveduserid<br/>
+DELETE /share
+	To delete a specific shared document by id and receiveduserid
 	Parameter : {docid=?}{userid=?}
 
-GET /versions<br/>
-	To get all versions for docid and it's current version<br/>
+GET /versions
+	To get all versions for docid and it's current version
 	Parameter : {docid=?}
 
-GET /versions<br/>
-	To get content of particular document in a specific version<br/>
+GET /versions
+	To get content of particular document in a specific version
 	Parameter : {docid=?}{versionid=?}
 
-PUT /versions<br/>
-	To update the current version to specific version<br/>
+PUT /versions
+	To update the current version to specific version
 	Parameter : {docid=?}{versionid=?}
