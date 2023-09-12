@@ -46,11 +46,12 @@ public class DocsControl extends HttpServlet {
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) {
 		int userid = (int) req.getAttribute("userid");
-		String docName = req.getParameter("name");
+		if(req.getParameter("name") == null)
+			respond(resp, 400, "Invalid Request!", true);
 		
 		try {
 			String fileContent = readInputStreamToString(req.getInputStream(), resp);
-			
+			String docName = req.getParameter("name");
 			PreparedStatement preparedStatement = connection.prepareStatement("insert into document(name, ownerid) values(?,?) returning docid");
 			preparedStatement.setString(1, docName);
 			preparedStatement.setInt(2, userid);
@@ -91,36 +92,23 @@ public class DocsControl extends HttpServlet {
 			try {
 				int docid = Integer.parseInt(req.getParameter("docid"));
 				String newContent = readInputStreamToString(req.getInputStream(), resp);
-				
-				PreparedStatement preparedS = connection.prepareStatement("select ownerid, receiverid, permission, currentversion from document join docshared on document.docid=docshared.docid where (document.ownerid=? and document.docid=?) or (docshared.receiverid=? and document.docid=?)");
-				preparedS.setInt(1, userid);
-				preparedS.setInt(2, docid);
-				preparedS.setInt(3, userid);
-				preparedS.setInt(4, docid);
-				ResultSet resultS = preparedS.executeQuery();
-				if(resultS.next()) {
-					int ownerid = resultS.getInt("ownerid");
-					int receiverid = resultS.getInt("receiverid");
-					int cversionid = resultS.getInt("currentversion");
-					String permission = resultS.getString("permission");
-					if((userid == ownerid) | ((receiverid == userid) & permission.contentEquals("All"))) {
-						PreparedStatement ps = connection.prepareStatement("select content from versions where versionid=?");
-						ps.setInt(1, cversionid);
-						ResultSet res = ps.executeQuery();
-						if(res.next()) {
-							InputStream c = res.getBinaryStream("content");
-							String oldContent = readInputStreamToString(c, resp);
-		
-							if(newContent.contentEquals(oldContent))
-								respond(resp, 200, "Nothying to change!", false);
-							else {
-								makeNewVersion(resp, docid, userid, cversionid, newContent, oldContent);
-							}	
-						}else
-							respond(resp, 404, "No Such Id Exists!", true);
-					} else
-						respond(resp, 401, "Unauthorized", true);
-				} else
+				if(checkOwner(docid, userid, resp) | checkReceivedWithPermissionToEdit(docid, userid, resp)) {
+					int cversionid = getCurrentVersion(docid, resp);
+					PreparedStatement ps = connection.prepareStatement("select content from versions where versionid=?");
+					ps.setInt(1, cversionid);
+					ResultSet res = ps.executeQuery();
+					if(res.next()) {
+						InputStream c = res.getBinaryStream("content");
+						String oldContent = readInputStreamToString(c, resp);
+	
+						if(newContent.contentEquals(oldContent))
+							respond(resp, 200, "Nothying to change!", false);
+						else {
+							makeNewVersion(resp, docid, userid, cversionid, newContent, oldContent);
+						}	
+					}else
+						respond(resp, 404, "No Such Id Exists!", true);
+				}else
 					respond(resp, 401, "Unauthorized", true);
 			} catch(NumberFormatException e) {
 				respond(resp, 400, "Invalid Request!", true);
@@ -276,6 +264,48 @@ public class DocsControl extends HttpServlet {
 		} catch (IOException e) {
 			respond(response, 500, "Internal Server Error", true);
 		}
+	}
+	
+	private boolean checkOwner(int docid, int userid, HttpServletResponse response) {
+		try {
+			PreparedStatement preparedStatement = connection.prepareStatement("select * from document where ownerid=? and docid=?");
+			preparedStatement.setInt(1, userid);
+			preparedStatement.setInt(2, docid);
+			ResultSet rs = preparedStatement.executeQuery();
+			if(rs.next())
+				return true;
+		} catch (SQLException e) {
+			respond(response, 500, "Internal Server Error", true);
+		}
+		return false;
+	}
+	
+	private boolean checkReceivedWithPermissionToEdit(int docid, int userid, HttpServletResponse response) {
+		try {
+			PreparedStatement preparedStatement = connection.prepareStatement("select * from docshared where receiverid=? and docid=? and permission=?");
+			preparedStatement.setInt(1, userid);
+			preparedStatement.setInt(2, docid);
+			preparedStatement.setString(3, "All");
+			ResultSet rs = preparedStatement.executeQuery();
+			if(rs.next())
+				return true;
+		} catch (SQLException e) {
+			respond(response, 500, "Internal Server Error", true);
+		}
+		return false;
+	}
+	
+	private int getCurrentVersion(int docid, HttpServletResponse response) {
+		try {
+			PreparedStatement preparedStatement = connection.prepareStatement("select currentversion from document where docid=?");
+			preparedStatement.setInt(1, docid);
+			ResultSet rs = preparedStatement.executeQuery();
+			if(rs.next())
+				return rs.getInt("currentversion");
+		} catch (SQLException e) {
+			respond(response, 500, "Internal Server Error", true);
+		}
+		return 0;
 	}
 
 	private void respond(HttpServletResponse response, int statusCode, List<Document> docs) {
