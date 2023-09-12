@@ -299,7 +299,6 @@ public class VersionControl extends HttpServlet {
 				preparedStatement.setInt(3, docid);
 				ResultSet rs = preparedStatement.executeQuery();
 				if(rs.next()) {
-					diff_match_patch dmp = new diff_match_patch();
 					InputStream c = rs.getBinaryStream("currentContent");
 					InputStream a = rs.getBinaryStream("afterContent");
 					String currentContent = readInputStreamToString(c, response);
